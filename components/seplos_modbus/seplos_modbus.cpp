@@ -136,9 +136,6 @@ float SeplosModbus::get_setup_priority() const {
 }
 
 void SeplosModbus::send(uint8_t protocol_version, uint8_t address, uint8_t function, uint8_t value) {
-  if (this->flow_control_pin_ != nullptr)
-    this->flow_control_pin_->digital_write(true);
-
   const uint16_t lenid = lchksum(1 * 2);
   std::vector<uint8_t> data;
   data.push_back(protocol_version);  // VER
@@ -161,6 +158,9 @@ void SeplosModbus::send(uint8_t protocol_version, uint8_t address, uint8_t funct
   payload.append("\r");                                                                 // EOF (0x0D)
 
   ESP_LOGD(TAG, "Send frame: %s", payload.c_str());
+
+  if (this->flow_control_pin_ != nullptr)
+    this->flow_control_pin_->digital_write(true);
 
   this->write_str(payload.c_str());
   this->flush();
