@@ -16,7 +16,14 @@ void SeplosModbus::loop() {
   const uint32_t now = millis();
 
   if (now - this->last_seplos_modbus_byte_ > this->rx_timeout_) {
+    ESP_LOGW(TAG, "RX Timeout!");
+    ESP_LOGW(TAG, "Clearing buffer...");
     this->rx_buffer_.clear();
+    while(this->available()) {
+      this->read();
+    }
+    ESP_LOGW(TAG, "Buffer cleared!");
+
     this->last_seplos_modbus_byte_ = now;
   }
 
@@ -26,7 +33,12 @@ void SeplosModbus::loop() {
     if (this->parse_seplos_modbus_byte_(byte)) {
       this->last_seplos_modbus_byte_ = now;
     } else {
+      ESP_LOGW(TAG, "Clearing buffer...");
       this->rx_buffer_.clear();
+      while(this->available()) {
+        this->read();
+      }
+      ESP_LOGW(TAG, "Buffer cleared!");
     }
   }
 }
@@ -83,7 +95,7 @@ bool SeplosModbus::parse_seplos_modbus_byte_(uint8_t byte) {
 
   // Start of frame
   if (raw[0] != 0x7E) {
-    ESP_LOGW(TAG, "Invalid header");
+    ESP_LOGW(TAG, "Invalid header: 0x%02X", raw[0]);
 
     // return false to reset buffer
     return false;
@@ -92,6 +104,11 @@ bool SeplosModbus::parse_seplos_modbus_byte_(uint8_t byte) {
   // End of frame '\r'
   if (raw[at] != 0x0D)
     return true;
+
+  if (at > 384) {
+    ESP_LOGW(TAG, "Cannot find carriage return!");
+    return false;
+  }
 
   uint16_t data_len = at - 4 - 1;
   uint16_t computed_crc = chksum(raw + 1, data_len);
