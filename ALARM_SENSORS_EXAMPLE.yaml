@@ -1,0 +1,113 @@
+# Example configuration for Seplos BMS alarm sensors
+# Add these to your existing seplos_bms configuration
+
+sensor:
+  - platform: seplos_bms
+    # ... existing sensors ...
+    
+    # Alarm event bitmask sensors (optional)
+    # These provide the raw bitmask values for each alarm event category
+    alarm_event1_bitmask:
+      name: "${name} alarm event 1 bitmask"  # Hardware failures
+    alarm_event2_bitmask:
+      name: "${name} alarm event 2 bitmask"  # Voltage alarms
+    alarm_event3_bitmask:
+      name: "${name} alarm event 3 bitmask"  # Cell temperature
+    alarm_event4_bitmask:
+      name: "${name} alarm event 4 bitmask"  # Environmental/power temperature
+    alarm_event5_bitmask:
+      name: "${name} alarm event 5 bitmask"  # Current protection
+    alarm_event6_bitmask:
+      name: "${name} alarm event 6 bitmask"  # Charging/output protection
+    alarm_event7_bitmask:
+      name: "${name} alarm event 7 bitmask"  # Internal/charging waiting
+    alarm_event8_bitmask:
+      name: "${name} alarm event 8 bitmask"  # System/calibration failures
+
+text_sensor:
+  - platform: seplos_bms
+    # Consolidated alarms text sensor (recommended)
+    # This provides a human-readable list of all active alarms
+    alarms:
+      name: "${name} alarms"
+    
+    # Errors text sensor (existing)
+    errors:
+      name: "${name} errors"
+
+# Alarm Event Categories:
+#
+# Event 1 - Hardware failures:
+#   - Voltage sensing failure
+#   - Temperature sensing failure
+#   - Current sensing failure
+#   - Key switch failure
+#   - Cell voltage diff failure
+#   - Charging switch failure
+#   - Discharge switch failure
+#   - Current limit switch failure
+#
+# Event 2 - Voltage alarms:
+#   - Single high voltage alarm
+#   - Single overvoltage protection
+#   - Single low voltage alarm
+#   - Single undervoltage protection
+#   - Total high voltage alarm
+#   - Total overvoltage protection
+#   - Total low voltage alarm
+#   - Total undervoltage protection
+#
+# Event 3 - Cell temperature:
+#   - Charging high temp alarm
+#   - Charging overtemp protection
+#   - Charging low temp alarm
+#   - Charging undertemp protection
+#   - Discharge high temp alarm
+#   - Discharge overtemp protection
+#   - Discharge low temp alarm
+#   - Discharge undertemp protection
+#
+# Event 4 - Environmental/power temperature:
+#   - Ambient high temp alarm
+#   - Ambient overtemp protection
+#   - Ambient low temp alarm
+#   - Ambient undertemp protection
+#   - Power overtemp protection
+#   - Power high temp alarm
+#   - Battery low temp heating
+#   - Secondary trip protection
+#
+# Event 5 - Current protection:
+#   - Charging overcurrent alarm
+#   - Charging overcurrent protection
+#   - Discharge overcurrent alarm
+#   - Discharge overcurrent protection
+#   - Transient overcurrent protection
+#   - Output short circuit protection
+#   - Transient overcurrent lockout
+#   - Output short circuit lockout
+#
+# Event 6 - Charging/output protection:
+#   - Charging high voltage protection
+#   - Intermittent power replenishment
+#   - Remaining capacity alarm
+#   - Remaining capacity protection
+#   - Low voltage charging prohibited
+#   - Output reverse polarity protection
+#   - Output connection failure
+#   - Internal alarm
+#
+# Event 7 - Internal/charging waiting:
+#   - Internal alarm 1-4
+#   - Automatic charging waiting
+#   - Manual charging waiting
+#   - Internal alarm 6-7
+#
+# Event 8 - System/calibration failures:
+#   - EEP storage failure
+#   - RTC clock failure
+#   - Voltage calibration not done
+#   - Current calibration not done
+#   - Zero point calibration not done
+#   - Calendar not synchronized
+#   - Internal system error 6-7

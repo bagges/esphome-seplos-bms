@@ -68,7 +68,17 @@ class SeplosBms : public PollingComponent, public seplos_modbus::SeplosModbusDev
   }
   void set_port_voltage_sensor(sensor::Sensor *port_voltage_sensor) { port_voltage_sensor_ = port_voltage_sensor; }
 
+  void set_alarm_event1_bitmask_sensor(sensor::Sensor *sensor) { alarm_event1_bitmask_sensor_ = sensor; }
+  void set_alarm_event2_bitmask_sensor(sensor::Sensor *sensor) { alarm_event2_bitmask_sensor_ = sensor; }
+  void set_alarm_event3_bitmask_sensor(sensor::Sensor *sensor) { alarm_event3_bitmask_sensor_ = sensor; }
+  void set_alarm_event4_bitmask_sensor(sensor::Sensor *sensor) { alarm_event4_bitmask_sensor_ = sensor; }
+  void set_alarm_event5_bitmask_sensor(sensor::Sensor *sensor) { alarm_event5_bitmask_sensor_ = sensor; }
+  void set_alarm_event6_bitmask_sensor(sensor::Sensor *sensor) { alarm_event6_bitmask_sensor_ = sensor; }
+  void set_alarm_event7_bitmask_sensor(sensor::Sensor *sensor) { alarm_event7_bitmask_sensor_ = sensor; }
+  void set_alarm_event8_bitmask_sensor(sensor::Sensor *sensor) { alarm_event8_bitmask_sensor_ = sensor; }
+
   void set_errors_text_sensor(text_sensor::TextSensor *errors_text_sensor) { errors_text_sensor_ = errors_text_sensor; }
+  void set_alarms_text_sensor(text_sensor::TextSensor *alarms_text_sensor) { alarms_text_sensor_ = alarms_text_sensor; }
 
   void set_function_switch_sensor(uint8_t index, binary_sensor::BinarySensor *sensor) {
     if (index < 64) {
@@ -106,7 +116,17 @@ class SeplosBms : public PollingComponent, public seplos_modbus::SeplosModbusDev
   sensor::Sensor *state_of_health_sensor_;
   sensor::Sensor *port_voltage_sensor_;
 
+  sensor::Sensor *alarm_event1_bitmask_sensor_{nullptr};
+  sensor::Sensor *alarm_event2_bitmask_sensor_{nullptr};
+  sensor::Sensor *alarm_event3_bitmask_sensor_{nullptr};
+  sensor::Sensor *alarm_event4_bitmask_sensor_{nullptr};
+  sensor::Sensor *alarm_event5_bitmask_sensor_{nullptr};
+  sensor::Sensor *alarm_event6_bitmask_sensor_{nullptr};
+  sensor::Sensor *alarm_event7_bitmask_sensor_{nullptr};
+  sensor::Sensor *alarm_event8_bitmask_sensor_{nullptr};
+
   text_sensor::TextSensor *errors_text_sensor_;
+  text_sensor::TextSensor *alarms_text_sensor_{nullptr};
 
   struct Cell {
     sensor::Sensor *cell_voltage_sensor_{nullptr};
@@ -134,6 +154,9 @@ class SeplosBms : public PollingComponent, public seplos_modbus::SeplosModbusDev
   void publish_device_unavailable_();
   void publish_function_switch_states_(uint8_t sw1, uint8_t sw2, uint8_t sw3, uint8_t sw4, uint8_t sw5, uint8_t sw6,
                                        uint8_t sw7, uint8_t sw8);
+  std::string decode_all_alarm_events_(uint8_t alarm_event1, uint8_t alarm_event2, uint8_t alarm_event3,
+                                       uint8_t alarm_event4, uint8_t alarm_event5, uint8_t alarm_event6,
+                                       uint8_t alarm_event7, uint8_t alarm_event8);
 };
 
 }  // namespace seplos_bms

@@ -46,6 +46,15 @@ CONF_CHARGING_CYCLES = "charging_cycles"
 CONF_STATE_OF_HEALTH = "state_of_health"
 CONF_PORT_VOLTAGE = "port_voltage"
 
+CONF_ALARM_EVENT1_BITMASK = "alarm_event1_bitmask"
+CONF_ALARM_EVENT2_BITMASK = "alarm_event2_bitmask"
+CONF_ALARM_EVENT3_BITMASK = "alarm_event3_bitmask"
+CONF_ALARM_EVENT4_BITMASK = "alarm_event4_bitmask"
+CONF_ALARM_EVENT5_BITMASK = "alarm_event5_bitmask"
+CONF_ALARM_EVENT6_BITMASK = "alarm_event6_bitmask"
+CONF_ALARM_EVENT7_BITMASK = "alarm_event7_bitmask"
+CONF_ALARM_EVENT8_BITMASK = "alarm_event8_bitmask"
+
 CONF_CELL_VOLTAGE_1 = "cell_voltage_1"
 CONF_CELL_VOLTAGE_2 = "cell_voltage_2"
 CONF_CELL_VOLTAGE_3 = "cell_voltage_3"
@@ -79,6 +88,15 @@ ICON_RATED_CAPACITY = "mdi:battery-50"
 
 ICON_CHARGING_CYCLES = "mdi:battery-sync"
 ICON_STATE_OF_HEALTH = "mdi:heart-flash"
+
+ICON_ALARM_EVENT1_BITMASK = "mdi:alert-octagon-outline"
+ICON_ALARM_EVENT2_BITMASK = "mdi:alert-octagon-outline"
+ICON_ALARM_EVENT3_BITMASK = "mdi:thermometer-alert"
+ICON_ALARM_EVENT4_BITMASK = "mdi:thermometer-alert"
+ICON_ALARM_EVENT5_BITMASK = "mdi:current-ac"
+ICON_ALARM_EVENT6_BITMASK = "mdi:battery-alert"
+ICON_ALARM_EVENT7_BITMASK = "mdi:alert-circle-outline"
+ICON_ALARM_EVENT8_BITMASK = "mdi:alert-circle-outline"
 
 UNIT_AMPERE_HOURS = "Ah"
 
@@ -129,6 +147,14 @@ SENSORS = [
     CONF_CHARGING_CYCLES,
     CONF_STATE_OF_HEALTH,
     CONF_PORT_VOLTAGE,
+    CONF_ALARM_EVENT1_BITMASK,
+    CONF_ALARM_EVENT2_BITMASK,
+    CONF_ALARM_EVENT3_BITMASK,
+    CONF_ALARM_EVENT4_BITMASK,
+    CONF_ALARM_EVENT5_BITMASK,
+    CONF_ALARM_EVENT6_BITMASK,
+    CONF_ALARM_EVENT7_BITMASK,
+    CONF_ALARM_EVENT8_BITMASK,
 ]
 
 # pylint: disable=too-many-function-args
@@ -411,6 +437,62 @@ CONFIG_SCHEMA = SEPLOS_BMS_COMPONENT_SCHEMA.extend(
             icon=ICON_EMPTY,
             accuracy_decimals=2,
             device_class=DEVICE_CLASS_VOLTAGE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_ALARM_EVENT1_BITMASK): sensor.sensor_schema(
+            unit_of_measurement=UNIT_EMPTY,
+            icon=ICON_ALARM_EVENT1_BITMASK,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_EMPTY,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_ALARM_EVENT2_BITMASK): sensor.sensor_schema(
+            unit_of_measurement=UNIT_EMPTY,
+            icon=ICON_ALARM_EVENT2_BITMASK,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_EMPTY,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_ALARM_EVENT3_BITMASK): sensor.sensor_schema(
+            unit_of_measurement=UNIT_EMPTY,
+            icon=ICON_ALARM_EVENT3_BITMASK,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_EMPTY,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_ALARM_EVENT4_BITMASK): sensor.sensor_schema(
+            unit_of_measurement=UNIT_EMPTY,
+            icon=ICON_ALARM_EVENT4_BITMASK,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_EMPTY,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_ALARM_EVENT5_BITMASK): sensor.sensor_schema(
+            unit_of_measurement=UNIT_EMPTY,
+            icon=ICON_ALARM_EVENT5_BITMASK,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_EMPTY,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_ALARM_EVENT6_BITMASK): sensor.sensor_schema(
+            unit_of_measurement=UNIT_EMPTY,
+            icon=ICON_ALARM_EVENT6_BITMASK,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_EMPTY,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_ALARM_EVENT7_BITMASK): sensor.sensor_schema(
+            unit_of_measurement=UNIT_EMPTY,
+            icon=ICON_ALARM_EVENT7_BITMASK,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_EMPTY,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_ALARM_EVENT8_BITMASK): sensor.sensor_schema(
+            unit_of_measurement=UNIT_EMPTY,
+            icon=ICON_ALARM_EVENT8_BITMASK,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_EMPTY,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
     }

@@ -9,6 +9,95 @@ static const char *const TAG = "seplos_bms";
 
 static const uint8_t MAX_NO_RESPONSE_COUNT = 5;
 
+// Alarm event messages (matching BLE implementation)
+static const char *const ALARM_EVENT1_MESSAGES[8] = {
+    "Voltage sensing failure",      // Bit 0
+    "Temperature sensing failure",  // Bit 1
+    "Current sensing failure",      // Bit 2
+    "Key switch failure",           // Bit 3
+    "Cell voltage diff failure",    // Bit 4
+    "Charging switch failure",      // Bit 5
+    "Discharge switch failure",     // Bit 6
+    "Current limit switch failure"  // Bit 7
+};
+
+static const char *const ALARM_EVENT2_MESSAGES[8] = {
+    "Single high voltage alarm",       // Bit 0
+    "Single overvoltage protection",   // Bit 1
+    "Single low voltage alarm",        // Bit 2
+    "Single undervoltage protection",  // Bit 3
+    "Total high voltage alarm",        // Bit 4
+    "Total overvoltage protection",    // Bit 5
+    "Total low voltage alarm",         // Bit 6
+    "Total undervoltage protection"    // Bit 7
+};
+
+static const char *const ALARM_EVENT3_MESSAGES[8] = {
+    "Charging high temp alarm",       // Bit 0
+    "Charging overtemp protection",   // Bit 1
+    "Charging low temp alarm",        // Bit 2
+    "Charging undertemp protection",  // Bit 3
+    "Discharge high temp alarm",      // Bit 4
+    "Discharge overtemp protection",  // Bit 5
+    "Discharge low temp alarm",       // Bit 6
+    "Discharge undertemp protection"  // Bit 7
+};
+
+static const char *const ALARM_EVENT4_MESSAGES[8] = {
+    "Ambient high temp alarm",       // Bit 0
+    "Ambient overtemp protection",   // Bit 1
+    "Ambient low temp alarm",        // Bit 2
+    "Ambient undertemp protection",  // Bit 3
+    "Power overtemp protection",     // Bit 4
+    "Power high temp alarm",         // Bit 5
+    "Battery low temp heating",      // Bit 6
+    "Secondary trip protection"      // Bit 7
+};
+
+static const char *const ALARM_EVENT5_MESSAGES[8] = {
+    "Charging overcurrent alarm",        // Bit 0
+    "Charging overcurrent protection",   // Bit 1
+    "Discharge overcurrent alarm",       // Bit 2
+    "Discharge overcurrent protection",  // Bit 3
+    "Transient overcurrent protection",  // Bit 4
+    "Output short circuit protection",   // Bit 5
+    "Transient overcurrent lockout",     // Bit 6
+    "Output short circuit lockout"       // Bit 7
+};
+
+static const char *const ALARM_EVENT6_MESSAGES[8] = {
+    "Charging high voltage protection",    // Bit 0
+    "Intermittent power replenishment",    // Bit 1
+    "Remaining capacity alarm",            // Bit 2
+    "Remaining capacity protection",       // Bit 3
+    "Low voltage charging prohibited",     // Bit 4
+    "Output reverse polarity protection",  // Bit 5
+    "Output connection failure",           // Bit 6
+    "Internal alarm"                       // Bit 7
+};
+
+static const char *const ALARM_EVENT7_MESSAGES[8] = {
+    "Internal alarm 1",            // Bit 0
+    "Internal alarm 2",            // Bit 1
+    "Internal alarm 3",            // Bit 2
+    "Internal alarm 4",            // Bit 3
+    "Automatic charging waiting",  // Bit 4
+    "Manual charging waiting",     // Bit 5
+    "Internal alarm 6",            // Bit 6
+    "Internal alarm 7"             // Bit 7
+};
+
+static const char *const ALARM_EVENT8_MESSAGES[8] = {
+    "EEP storage failure",              // Bit 0
+    "RTC clock failure",                // Bit 1
+    "Voltage calibration not done",     // Bit 2
+    "Current calibration not done",     // Bit 3
+    "Zero point calibration not done",  // Bit 4
+    "Calendar not synchronized",        // Bit 5
+    "Internal system error 6",          // Bit 6
+    "Internal system error 7"           // Bit 7
+};
+
 // Function switch names for logging (64 total)
 static const char *const FUNCTION_SWITCH_NAMES[64] = {
     // Switch 1 - Sensing failures
@@ -258,6 +347,47 @@ void SeplosBms::on_telemetry_data_(const std::vector<uint8_t> &data) {
            switch1, switch2, switch3, switch4, switch5, switch6, switch7, switch8);
 
   this->publish_function_switch_states_(switch1, switch2, switch3, switch4, switch5, switch6, switch7, switch8);
+
+  // Alarm event data validation (offset + 35 to offset + 42 = 8 bytes)
+  if (data.size() < offset + 43) {
+    ESP_LOGD(TAG, "Frame too short for alarm event data (size: %zu, required: %zu)", data.size(), offset + 43);
+    return;
+  }
+
+  //   89     0x00           Alarm event 1                    Hardware failures
+  //   90     0x00           Alarm event 2                    Voltage alarms
+  //   91     0x00           Alarm event 3                    Cell temperature
+  //   92     0x00           Alarm event 4                    Environmental/power temperature
+  //   93     0x00           Alarm event 5                    Current protection
+  //   94     0x00           Alarm event 6                    Charging/output protection
+  //   95     0x00           Alarm event 7                    Internal/charging waiting
+  //   96     0x00           Alarm event 8                    System/calibration failures
+  uint8_t alarm_event1 = data[offset + 35];
+  uint8_t alarm_event2 = data[offset + 36];
+  uint8_t alarm_event3 = data[offset + 37];
+  uint8_t alarm_event4 = data[offset + 38];
+  uint8_t alarm_event5 = data[offset + 39];
+  uint8_t alarm_event6 = data[offset + 40];
+  uint8_t alarm_event7 = data[offset + 41];
+  uint8_t alarm_event8 = data[offset + 42];
+
+  ESP_LOGD(TAG, "Alarm events: 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X",
+           alarm_event1, alarm_event2, alarm_event3, alarm_event4, alarm_event5, alarm_event6, alarm_event7, alarm_event8);
+
+  // Publish alarm bitmask sensors
+  this->publish_state_(this->alarm_event1_bitmask_sensor_, (float) alarm_event1);
+  this->publish_state_(this->alarm_event2_bitmask_sensor_, (float) alarm_event2);
+  this->publish_state_(this->alarm_event3_bitmask_sensor_, (float) alarm_event3);
+  this->publish_state_(this->alarm_event4_bitmask_sensor_, (float) alarm_event4);
+  this->publish_state_(this->alarm_event5_bitmask_sensor_, (float) alarm_event5);
+  this->publish_state_(this->alarm_event6_bitmask_sensor_, (float) alarm_event6);
+  this->publish_state_(this->alarm_event7_bitmask_sensor_, (float) alarm_event7);
+  this->publish_state_(this->alarm_event8_bitmask_sensor_, (float) alarm_event8);
+
+  // Decode and publish consolidated alarms text
+  std::string consolidated_alarms = this->decode_all_alarm_events_(
+      alarm_event1, alarm_event2, alarm_event3, alarm_event4, alarm_event5, alarm_event6, alarm_event7, alarm_event8);
+  this->publish_state_(this->alarms_text_sensor_, consolidated_alarms);
 }
 
 void SeplosBms::dump_config() {
@@ -303,6 +433,16 @@ void SeplosBms::dump_config() {
   LOG_SENSOR("", "Average Cell Voltage", this->average_cell_voltage_sensor_);
   LOG_SENSOR("", "State of health", this->state_of_health_sensor_);
   LOG_SENSOR("", "Port Voltage", this->port_voltage_sensor_);
+  
+  // Alarm bitmask sensors
+  LOG_SENSOR("", "Alarm Event 1 Bitmask", this->alarm_event1_bitmask_sensor_);
+  LOG_SENSOR("", "Alarm Event 2 Bitmask", this->alarm_event2_bitmask_sensor_);
+  LOG_SENSOR("", "Alarm Event 3 Bitmask", this->alarm_event3_bitmask_sensor_);
+  LOG_SENSOR("", "Alarm Event 4 Bitmask", this->alarm_event4_bitmask_sensor_);
+  LOG_SENSOR("", "Alarm Event 5 Bitmask", this->alarm_event5_bitmask_sensor_);
+  LOG_SENSOR("", "Alarm Event 6 Bitmask", this->alarm_event6_bitmask_sensor_);
+  LOG_SENSOR("", "Alarm Event 7 Bitmask", this->alarm_event7_bitmask_sensor_);
+  LOG_SENSOR("", "Alarm Event 8 Bitmask", this->alarm_event8_bitmask_sensor_);
   
   // Function switch binary sensors
   LOG_BINARY_SENSOR("", "Voltage Sensing Failure", this->function_switches_[0].sensor_);
@@ -471,6 +611,38 @@ void SeplosBms::publish_function_switch_states_(uint8_t sw1, uint8_t sw2, uint8_
       this->publish_state_(this->function_switches_[index].sensor_, state);
     }
   }
+}
+
+std::string SeplosBms::decode_all_alarm_events_(uint8_t alarm_event1, uint8_t alarm_event2, uint8_t alarm_event3,
+                                                uint8_t alarm_event4, uint8_t alarm_event5, uint8_t alarm_event6,
+                                                uint8_t alarm_event7, uint8_t alarm_event8) {
+  std::string alarms_text = "";
+  
+  auto add_alarms = [&](const char *const messages[], uint8_t mask) {
+    for (uint8_t i = 0; i < 8; i++) {
+      if (mask & (1 << i)) {
+        if (!alarms_text.empty()) {
+          alarms_text += "; ";
+        }
+        alarms_text += messages[i];
+      }
+    }
+  };
+
+  add_alarms(ALARM_EVENT1_MESSAGES, alarm_event1);
+  add_alarms(ALARM_EVENT2_MESSAGES, alarm_event2);
+  add_alarms(ALARM_EVENT3_MESSAGES, alarm_event3);
+  add_alarms(ALARM_EVENT4_MESSAGES, alarm_event4);
+  add_alarms(ALARM_EVENT5_MESSAGES, alarm_event5);
+  add_alarms(ALARM_EVENT6_MESSAGES, alarm_event6);
+  add_alarms(ALARM_EVENT7_MESSAGES, alarm_event7);
+  add_alarms(ALARM_EVENT8_MESSAGES, alarm_event8);
+
+  if (alarms_text.empty()) {
+    alarms_text = "No alarms";
+  }
+
+  return alarms_text;
 }
 
 }  // namespace seplos_bms
