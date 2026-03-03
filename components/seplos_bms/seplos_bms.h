@@ -70,6 +70,12 @@ class SeplosBms : public PollingComponent, public seplos_modbus::SeplosModbusDev
 
   void set_errors_text_sensor(text_sensor::TextSensor *errors_text_sensor) { errors_text_sensor_ = errors_text_sensor; }
 
+  void set_function_switch_sensor(uint8_t index, binary_sensor::BinarySensor *sensor) {
+    if (index < 64) {
+      this->function_switches_[index].sensor_ = sensor;
+    }
+  }
+
   void set_override_cell_count(uint8_t override_cell_count) { this->override_cell_count_ = override_cell_count; }
 
   void on_seplos_modbus_data(const std::vector<uint8_t> &data) override;
@@ -110,6 +116,12 @@ class SeplosBms : public PollingComponent, public seplos_modbus::SeplosModbusDev
     sensor::Sensor *temperature_sensor_{nullptr};
   } temperatures_[6];
 
+  struct FunctionSwitch {
+    binary_sensor::BinarySensor *sensor_{nullptr};
+  } function_switches_[64];
+
+  bool previous_function_switch_states_[64]{false};
+
   uint8_t override_cell_count_{0};
   uint8_t no_response_count_{0};
 
@@ -120,6 +132,8 @@ class SeplosBms : public PollingComponent, public seplos_modbus::SeplosModbusDev
   void reset_online_status_tracker_();
   void track_online_status_();
   void publish_device_unavailable_();
+  void publish_function_switch_states_(uint8_t sw1, uint8_t sw2, uint8_t sw3, uint8_t sw4, uint8_t sw5, uint8_t sw6,
+                                       uint8_t sw7, uint8_t sw8);
 };
 
 }  // namespace seplos_bms

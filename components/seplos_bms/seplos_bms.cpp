@@ -9,6 +9,82 @@ static const char *const TAG = "seplos_bms";
 
 static const uint8_t MAX_NO_RESPONSE_COUNT = 5;
 
+// Function switch names for logging (64 total)
+static const char *const FUNCTION_SWITCH_NAMES[64] = {
+    // Switch 1 - Sensing failures
+    "Voltage Sensing Failure",
+    "Temperature Sensing Failure",
+    "Current Sensing Failure",
+    "Key Switch Failure",
+    "Cell Voltage Diff Failure",
+    "Charging Switch Failure",
+    "Discharge Switch Failure",
+    "Current Limit Switch Failure",
+    // Switch 2 - Voltage alarms and protection
+    "Single High Voltage Alarm",
+    "Single Overvoltage Protection",
+    "Single Low Voltage Alarm",
+    "Single Undervoltage Protection",
+    "Total High Voltage Alarm",
+    "Total Overvoltage Protection",
+    "Total Low Voltage Alarm",
+    "Total Undervoltage Protection",
+    // Switch 3 - Temperature alarms and protection
+    "Charging High Temp Alarm",
+    "Charging Overtemp Protection",
+    "Charging Low Temp Alarm",
+    "Charging Undertemp Protection",
+    "Discharge High Temp Alarm",
+    "Discharge Overtemp Protection",
+    "Discharge Low Temp Alarm",
+    "Discharge Undertemp Protection",
+    // Switch 4 - Ambient and power temperature
+    "Ambient High Temp Alarm",
+    "Ambient Overtemp Protection",
+    "Ambient Low Temp Alarm",
+    "Ambient Undertemp Protection",
+    "Power Overtemp Protection",
+    "Power High Temp Alarm",
+    "Battery Low Temp Heating",
+    "Secondary Trip Protection",
+    // Switch 5 - Current protection
+    "Charging Overcurrent Alarm",
+    "Charging Overcurrent Protection",
+    "Discharge Overcurrent Alarm",
+    "Discharge Overcurrent Protection",
+    "Transient Overcurrent Protection",
+    "Output Short Circuit Protection",
+    "Transient Overcurrent Lockout",
+    "Output Short Circuit Lockout",
+    // Switch 6 - Capacity and output protection
+    "Charging High Voltage Protection",
+    "Intermittent Power Supply",
+    "Remaining Capacity Alarm",
+    "Remaining Capacity Protection",
+    "Low Voltage Charging Prohibited",
+    "Output Reverse Polarity Protection",
+    "Output Connection Failure",
+    "Output Soft Start",
+    // Switch 7 - Balancing and charging
+    "Charge Balancing",
+    "Static Equalization",
+    "Timeout Prohibits Equalization",
+    "Overtemp Prohibits Equalization",
+    "Automatic Charging Activation",
+    "Manual Charging Activation",
+    "Active Current Limiting Charging",
+    "Passive Current Limiting Charging",
+    // Switch 8 - System functions
+    "Switch Shutdown",
+    "Standby Poweroff",
+    "History Function",
+    "LCD Display",
+    "Bluetooth Communication",
+    "Automatic Address Encoding",
+    "Parallel External Polling",
+    "Reserved",
+};
+
 void SeplosBms::on_seplos_modbus_data(const std::vector<uint8_t> &data) {
   this->reset_online_status_tracker_();
 
@@ -154,6 +230,34 @@ void SeplosBms::on_telemetry_data_(const std::vector<uint8_t> &data) {
   //   75     0x00 0x00      Reserved
   //   77     0x00 0x00      Reserved
   //   79     0x00 0x00      Reserved
+
+  // Function switch data validation (offset + 27 to offset + 34 = 8 bytes)
+  if (data.size() < offset + 35) {
+    ESP_LOGD(TAG, "Frame too short for function switch data (size: %zu, required: %zu)", data.size(), offset + 35);
+    return;
+  }
+
+  //   81     0x00           Function switch 1                Switch register 1
+  //   82     0x00           Function switch 2                Switch register 2
+  //   83     0x00           Function switch 3                Switch register 3
+  //   84     0x00           Function switch 4                Switch register 4
+  //   85     0x00           Function switch 5                Switch register 5
+  //   86     0x00           Function switch 6                Switch register 6
+  //   87     0x00           Function switch 7                Switch register 7
+  //   88     0x00           Function switch 8                Switch register 8
+  uint8_t switch1 = data[offset + 27];
+  uint8_t switch2 = data[offset + 28];
+  uint8_t switch3 = data[offset + 29];
+  uint8_t switch4 = data[offset + 30];
+  uint8_t switch5 = data[offset + 31];
+  uint8_t switch6 = data[offset + 32];
+  uint8_t switch7 = data[offset + 33];
+  uint8_t switch8 = data[offset + 34];
+
+  ESP_LOGD(TAG, "Function switches: 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X",
+           switch1, switch2, switch3, switch4, switch5, switch6, switch7, switch8);
+
+  this->publish_function_switch_states_(switch1, switch2, switch3, switch4, switch5, switch6, switch7, switch8);
 }
 
 void SeplosBms::dump_config() {
@@ -199,6 +303,71 @@ void SeplosBms::dump_config() {
   LOG_SENSOR("", "Average Cell Voltage", this->average_cell_voltage_sensor_);
   LOG_SENSOR("", "State of health", this->state_of_health_sensor_);
   LOG_SENSOR("", "Port Voltage", this->port_voltage_sensor_);
+  
+  // Function switch binary sensors
+  LOG_BINARY_SENSOR("", "Voltage Sensing Failure", this->function_switches_[0].sensor_);
+  LOG_BINARY_SENSOR("", "Temperature Sensing Failure", this->function_switches_[1].sensor_);
+  LOG_BINARY_SENSOR("", "Current Sensing Failure", this->function_switches_[2].sensor_);
+  LOG_BINARY_SENSOR("", "Key Switch Failure", this->function_switches_[3].sensor_);
+  LOG_BINARY_SENSOR("", "Cell Voltage Diff Failure", this->function_switches_[4].sensor_);
+  LOG_BINARY_SENSOR("", "Charging Switch Failure", this->function_switches_[5].sensor_);
+  LOG_BINARY_SENSOR("", "Discharge Switch Failure", this->function_switches_[6].sensor_);
+  LOG_BINARY_SENSOR("", "Current Limit Switch Failure", this->function_switches_[7].sensor_);
+  LOG_BINARY_SENSOR("", "Single High Voltage Alarm", this->function_switches_[8].sensor_);
+  LOG_BINARY_SENSOR("", "Single Overvoltage Protection", this->function_switches_[9].sensor_);
+  LOG_BINARY_SENSOR("", "Single Low Voltage Alarm", this->function_switches_[10].sensor_);
+  LOG_BINARY_SENSOR("", "Single Undervoltage Protection", this->function_switches_[11].sensor_);
+  LOG_BINARY_SENSOR("", "Total High Voltage Alarm", this->function_switches_[12].sensor_);
+  LOG_BINARY_SENSOR("", "Total Overvoltage Protection", this->function_switches_[13].sensor_);
+  LOG_BINARY_SENSOR("", "Total Low Voltage Alarm", this->function_switches_[14].sensor_);
+  LOG_BINARY_SENSOR("", "Total Undervoltage Protection", this->function_switches_[15].sensor_);
+  LOG_BINARY_SENSOR("", "Charging High Temp Alarm", this->function_switches_[16].sensor_);
+  LOG_BINARY_SENSOR("", "Charging Overtemp Protection", this->function_switches_[17].sensor_);
+  LOG_BINARY_SENSOR("", "Charging Low Temp Alarm", this->function_switches_[18].sensor_);
+  LOG_BINARY_SENSOR("", "Charging Undertemp Protection", this->function_switches_[19].sensor_);
+  LOG_BINARY_SENSOR("", "Discharge High Temp Alarm", this->function_switches_[20].sensor_);
+  LOG_BINARY_SENSOR("", "Discharge Overtemp Protection", this->function_switches_[21].sensor_);
+  LOG_BINARY_SENSOR("", "Discharge Low Temp Alarm", this->function_switches_[22].sensor_);
+  LOG_BINARY_SENSOR("", "Discharge Undertemp Protection", this->function_switches_[23].sensor_);
+  LOG_BINARY_SENSOR("", "Ambient High Temp Alarm", this->function_switches_[24].sensor_);
+  LOG_BINARY_SENSOR("", "Ambient Overtemp Protection", this->function_switches_[25].sensor_);
+  LOG_BINARY_SENSOR("", "Ambient Low Temp Alarm", this->function_switches_[26].sensor_);
+  LOG_BINARY_SENSOR("", "Ambient Undertemp Protection", this->function_switches_[27].sensor_);
+  LOG_BINARY_SENSOR("", "Power Overtemp Protection", this->function_switches_[28].sensor_);
+  LOG_BINARY_SENSOR("", "Power High Temp Alarm", this->function_switches_[29].sensor_);
+  LOG_BINARY_SENSOR("", "Battery Low Temp Heating", this->function_switches_[30].sensor_);
+  LOG_BINARY_SENSOR("", "Secondary Trip Protection", this->function_switches_[31].sensor_);
+  LOG_BINARY_SENSOR("", "Charging Overcurrent Alarm", this->function_switches_[32].sensor_);
+  LOG_BINARY_SENSOR("", "Charging Overcurrent Protection", this->function_switches_[33].sensor_);
+  LOG_BINARY_SENSOR("", "Discharge Overcurrent Alarm", this->function_switches_[34].sensor_);
+  LOG_BINARY_SENSOR("", "Discharge Overcurrent Protection", this->function_switches_[35].sensor_);
+  LOG_BINARY_SENSOR("", "Transient Overcurrent Protection", this->function_switches_[36].sensor_);
+  LOG_BINARY_SENSOR("", "Output Short Circuit Protection", this->function_switches_[37].sensor_);
+  LOG_BINARY_SENSOR("", "Transient Overcurrent Lockout", this->function_switches_[38].sensor_);
+  LOG_BINARY_SENSOR("", "Output Short Circuit Lockout", this->function_switches_[39].sensor_);
+  LOG_BINARY_SENSOR("", "Charging High Voltage Protection", this->function_switches_[40].sensor_);
+  LOG_BINARY_SENSOR("", "Intermittent Power Supply", this->function_switches_[41].sensor_);
+  LOG_BINARY_SENSOR("", "Remaining Capacity Alarm", this->function_switches_[42].sensor_);
+  LOG_BINARY_SENSOR("", "Remaining Capacity Protection", this->function_switches_[43].sensor_);
+  LOG_BINARY_SENSOR("", "Low Voltage Charging Prohibited", this->function_switches_[44].sensor_);
+  LOG_BINARY_SENSOR("", "Output Reverse Polarity Protection", this->function_switches_[45].sensor_);
+  LOG_BINARY_SENSOR("", "Output Connection Failure", this->function_switches_[46].sensor_);
+  LOG_BINARY_SENSOR("", "Output Soft Start", this->function_switches_[47].sensor_);
+  LOG_BINARY_SENSOR("", "Charge Balancing", this->function_switches_[48].sensor_);
+  LOG_BINARY_SENSOR("", "Static Equalization", this->function_switches_[49].sensor_);
+  LOG_BINARY_SENSOR("", "Timeout Prohibits Equalization", this->function_switches_[50].sensor_);
+  LOG_BINARY_SENSOR("", "Overtemp Prohibits Equalization", this->function_switches_[51].sensor_);
+  LOG_BINARY_SENSOR("", "Automatic Charging Activation", this->function_switches_[52].sensor_);
+  LOG_BINARY_SENSOR("", "Manual Charging Activation", this->function_switches_[53].sensor_);
+  LOG_BINARY_SENSOR("", "Active Current Limiting Charging", this->function_switches_[54].sensor_);
+  LOG_BINARY_SENSOR("", "Passive Current Limiting Charging", this->function_switches_[55].sensor_);
+  LOG_BINARY_SENSOR("", "Switch Shutdown", this->function_switches_[56].sensor_);
+  LOG_BINARY_SENSOR("", "Standby Poweroff", this->function_switches_[57].sensor_);
+  LOG_BINARY_SENSOR("", "History Function", this->function_switches_[58].sensor_);
+  LOG_BINARY_SENSOR("", "LCD Display", this->function_switches_[59].sensor_);
+  LOG_BINARY_SENSOR("", "Bluetooth Communication", this->function_switches_[60].sensor_);
+  LOG_BINARY_SENSOR("", "Automatic Address Encoding", this->function_switches_[61].sensor_);
+  LOG_BINARY_SENSOR("", "Parallel External Polling", this->function_switches_[62].sensor_);
 }
 
 float SeplosBms::get_setup_priority() const {
@@ -276,6 +445,31 @@ void SeplosBms::publish_device_unavailable_() {
 
   for (auto &cell : this->cells_) {
     this->publish_state_(cell.cell_voltage_sensor_, NAN);
+  }
+
+  for (auto &function_switch : this->function_switches_) {
+    this->publish_state_(function_switch.sensor_, false);
+  }
+}
+
+void SeplosBms::publish_function_switch_states_(uint8_t sw1, uint8_t sw2, uint8_t sw3, uint8_t sw4, uint8_t sw5,
+                                                uint8_t sw6, uint8_t sw7, uint8_t sw8) {
+  uint8_t switches[8] = {sw1, sw2, sw3, sw4, sw5, sw6, sw7, sw8};
+
+  for (uint8_t reg = 0; reg < 8; reg++) {
+    for (uint8_t bit = 0; bit < 8; bit++) {
+      uint8_t index = reg * 8 + bit;
+      bool state = (switches[reg] & (1 << bit)) != 0;
+      
+      // Check if state has changed and log it
+      if (state != this->previous_function_switch_states_[index]) {
+        ESP_LOGD(TAG, "Function switch changed: Register %d, Bit %d, %s = %s", 
+                 reg + 1, bit, FUNCTION_SWITCH_NAMES[index], state ? "ON" : "OFF");
+        this->previous_function_switch_states_[index] = state;
+      }
+      
+      this->publish_state_(this->function_switches_[index].sensor_, state);
+    }
   }
 }
 

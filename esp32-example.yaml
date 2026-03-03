@@ -153,3 +153,38 @@ binary_sensor:
   - platform: seplos_bms
     online_status:
       name: "${name} online status"
+    # Function switch binary sensors (optional)
+    # Uncomment any sensors you want to monitor
+    # intermittent_power_supply:
+    #   name: "${name} intermittent power supply"
+    # charge_balancing:
+    #   name: "${name} charge balancing"
+    # voltage_sensing_failure:
+    #   name: "${name} voltage sensing failure"
+    # temperature_sensing_failure:
+    #   name: "${name} temperature sensing failure"
+    # current_sensing_failure:
+    #   name: "${name} current sensing failure"
+    # single_overvoltage_protection:
+    #   name: "${name} single overvoltage protection"
+    # single_undervoltage_protection:
+    #   name: "${name} single undervoltage protection"
+    # total_overvoltage_protection:
+    #   name: "${name} total overvoltage protection"
+    # total_undervoltage_protection:
+    #   name: "${name} total undervoltage protection"
+    # charging_overtemp_protection:
+    #   name: "${name} charging overtemp protection"
+    # charging_undertemp_protection:
+    #   name: "${name} charging undertemp protection"
+    # discharge_overtemp_protection:
+    #   name: "${name} discharge overtemp protection"
+    # discharge_undertemp_protection:
+    #   name: "${name} discharge undertemp protection"
+    # charging_overcurrent_protection:
+    #   name: "${name} charging overcurrent protection"
+    # discharge_overcurrent_protection:
+    #   name: "${name} discharge overcurrent protection"
+    # output_short_circuit_protection:
+    #   name: "${name} output short circuit protection"
+    # See binary_sensor.py for all 64 available function switches
